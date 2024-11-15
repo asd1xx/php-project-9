@@ -35,4 +35,8 @@ $app->get('/urls/{id}', function ($request, $response, array $args) {
     return $this->get('renderer')->render($response, 'show.phtml');
 });
 
+$app->post('/urls/{id}/check', function ($request, $response, array $args) {
+    return $this->get('renderer')->render($response, 'show.phtml');
+});
+
 $app->run();
