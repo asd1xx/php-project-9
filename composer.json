@@ -1,4 +1,9 @@
 {
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
     "name": "hexlet/code",
     "description": "Page analyzer",
     "license": "proprietary",
@@ -8,7 +13,8 @@
         "slim/http": "^1.4",
         "slim/php-view": "^3.4",
         "php-di/php-di": "^7.0",
-        "nesbot/carbon": "^3.8"
+        "nesbot/carbon": "^3.8",
+        "vlucas/valitron": "^1.4"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "*",
