@@ -28,6 +28,14 @@
       </nav>
     </header>
 
+    <?php if (count($flash) > 0): ?>
+      <?php foreach ($flash as $messages): ?>
+        <?php foreach ($messages as $message): ?>
+          <div class="alert alert-success" role="alert"><?= $message ?></div>
+        <?php endforeach ?>
+      <?php endforeach ?>
+    <?php endif ?>
+
     <main class="flex-grow-1">
       <div class="container-lg mt-3">
         <h1>Сайт: <?= $url ?></h1>

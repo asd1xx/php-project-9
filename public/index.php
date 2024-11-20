@@ -81,6 +81,7 @@ $app->post('/urls', function ($request, $response) use ($router, $connect) {
     $getId->execute();
     $id = $getId->fetchColumn();
     $url = $router->urlFor('check', ['id' => $id]);
+    $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
 
     return $response->withRedirect($url);
 });
@@ -92,11 +93,13 @@ $app->get('/urls/{id}', function ($request, $response, array $args) use ($connec
     $getLine->bindValue(':id', $id);
     $getLine->execute();
     $urlData = $getLine->fetch(\PDO::FETCH_ASSOC);
+    $flash = $this->get('flash')->getMessages();
     
     $params = [
         'url' => $urlData['name'],
         'id' => $urlData['id'],
-        'now' => $urlData['created_at']
+        'now' => $urlData['created_at'],
+        'flash' => $flash
     ];
 
     return $this->get('renderer')->render($response, 'show.phtml', $params);
