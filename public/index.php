@@ -37,7 +37,7 @@ $app->get('/urls', function ($request, $response) use ($connect) {
         'urls' => $allUrls
     ];
 
-    return $this->get('renderer')->render($response, 'sites.phtml', $params);
+    return $this->get('renderer')->render($response, 'urls.phtml', $params);
 })->setName('urls');
 
 $app->post('/urls', function ($request, $response) use ($router, $connect) {
@@ -80,7 +80,7 @@ $app->post('/urls', function ($request, $response) use ($router, $connect) {
     $getId->bindValue(':name', $urlName);
     $getId->execute();
     $id = $getId->fetchColumn();
-    $url = $router->urlFor('check', ['id' => $id]);
+    $url = $router->urlFor('url', ['id' => $id]);
     $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
 
     return $response->withRedirect($url);
@@ -102,14 +102,14 @@ $app->get('/urls/{id}', function ($request, $response, array $args) use ($connec
         'flash' => $flash
     ];
 
-    return $this->get('renderer')->render($response, 'show.phtml', $params);
-})->setName('check');
+    return $this->get('renderer')->render($response, 'url.phtml', $params);
+})->setName('url');
 
 
 
 
 $app->post('/urls/{id}/check', function ($request, $response, array $args) {
-    return $this->get('renderer')->render($response, 'show.phtml');
+    return $this->get('renderer')->render($response, 'url.phtml');
 });
 
 $app->run();
