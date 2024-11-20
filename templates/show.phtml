@@ -30,21 +30,21 @@
 
     <main class="flex-grow-1">
       <div class="container-lg mt-3">
-        <h1>Сайт: https://ya.ru</h1>
+        <h1>Сайт: <?= $url ?></h1>
         <div class="table-responsive">
           <table class="table table-bordered table-hover text-nowrap" data-test="url">
             <tbody>
               <tr>
                 <td>ID</td>
-                <td>1</td>
+                <td><?= $id ?></td>
               </tr>
               <tr>
                 <td>Имя</td>
-                <td>https://ya.ru</td>
+                <td><?= $url ?></td>
               </tr>
               <tr>
                 <td>Дата создания</td>
-                <td>2024-11-15 10:12:14</td>
+                <td><?= $now ?></td>
               </tr>
             </tbody>
           </table>
