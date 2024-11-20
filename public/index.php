@@ -5,6 +5,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use Slim\Factory\AppFactory;
 use DI\Container;
 use App\Connection;
+use Carbon\Carbon;
 
 session_start();
 
@@ -20,25 +21,27 @@ $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
 $router = $app->getRouteCollector()->getRouteParser();
 
-Connection::get()->connect();
-// try {
-//     Connection::get()->connect();
-//     echo 'A connection to the PostgreSQL database sever has been established successfully.';
-// } catch (\PDOException $e) {
-//     echo $e->getMessage();
-// }
+$connect = Connection::get()->connect();
 
 $app->get('/', function ($request, $response) {
     return $this->get('renderer')->render($response, 'home.phtml');
 })->setName('home');
 
-$app->get('/urls', function ($request, $response) {
-    return $this->get('renderer')->render($response, 'sites.phtml');
+$app->get('/urls', function ($request, $response) use ($connect) {
+    $sqlGetAll = 'SELECT * FROM urls ORDER BY created_at DESC';
+    $getAll = $connect->prepare($sqlGetAll);
+    $getAll->execute();
+    $allUrls = $getAll->fetchAll(\PDO::FETCH_ASSOC);
+
+    $params = [
+        'urls' => $allUrls
+    ];
+
+    return $this->get('renderer')->render($response, 'sites.phtml', $params);
 })->setName('urls');
 
-$app->post('/urls', function ($request, $response) {
+$app->post('/urls', function ($request, $response) use ($router, $connect) {
     $dataRequest = $request->getParsedBodyParam('url');
-    $urlName = $dataRequest['name'];
 
     $errors = new Valitron\Validator($dataRequest);
     $errors->rule('required', 'name');
@@ -62,28 +65,45 @@ $app->post('/urls', function ($request, $response) {
         return $this->get('renderer')->render($response->withStatus(422), 'home.phtml', $params);
     }
 
-    $params = ['url' => $dataRequest];
+    $urlData = parse_url(mb_strtolower($dataRequest['name']));
+    $urlName = "{$urlData['scheme']}://{$urlData['host']}";
+    $now = Carbon::now();
 
-    
-    
+    $sqlAddUrl = 'INSERT INTO urls (name, created_at) VALUES (:name, :created_at)';
+    $addUrl = $connect->prepare($sqlAddUrl);
+    $addUrl->bindValue(':name', $urlName);
+    $addUrl->bindValue(':created_at', $now);
+    $addUrl->execute();
 
-    // $errors->rule('required', 'url')->message('URL не должен быть пустым');
-    // $errors->rule('lengthMax', 'url', 255)->message('Некорректный URL');
-    // $errors->rule('url', 'url')->message('Некорректный URL');
-    // if (!$errors->validate()) {
-    //     print_r($errors->errors());
-    // }
+    $sqlGetId = 'SELECT id FROM urls WHERE name = :name';
+    $getId = $connect->prepare($sqlGetId);
+    $getId->bindValue(':name', $urlName);
+    $getId->execute();
+    $id = $getId->fetchColumn();
+    $url = $router->urlFor('check', ['id' => $id]);
 
-
-
-    // $params = ['url' => $dataRequest];
-    // dd($dataRequest);
-    return $this->get('renderer')->render($response->withStatus(422), 'sites.phtml', $params);
+    return $response->withRedirect($url);
 });
 
-$app->get('/urls/{id}', function ($request, $response, array $args) {
-    return $this->get('renderer')->render($response, 'show.phtml');
+$app->get('/urls/{id}', function ($request, $response, array $args) use ($connect) {
+    $id = $args['id'];
+    $sqlGetLine = 'SELECT * FROM urls WHERE id = :id';
+    $getLine = $connect->prepare($sqlGetLine);
+    $getLine->bindValue(':id', $id);
+    $getLine->execute();
+    $urlData = $getLine->fetch(\PDO::FETCH_ASSOC);
+    
+    $params = [
+        'url' => $urlData['name'],
+        'id' => $urlData['id'],
+        'now' => $urlData['created_at']
+    ];
+
+    return $this->get('renderer')->render($response, 'show.phtml', $params);
 })->setName('check');
+
+
+
 
 $app->post('/urls/{id}/check', function ($request, $response, array $args) {
     return $this->get('renderer')->render($response, 'show.phtml');
