@@ -46,8 +46,12 @@
                 <tr>
                   <td><?= htmlspecialchars($url['id']) ?></td>
                   <td><a href="/urls/<?= htmlspecialchars($url['id']) ?>"><?= htmlspecialchars($url['name']) ?></a></td>
-                  <!-- <td><?= $url['name'] ?></td>
-                  <td><?= $url['name'] ?></td> -->
+                  <?php foreach ($lastChecks as $lastCheck): ?>
+                    <?php if ($lastCheck['url_id'] === $url['id']): ?>
+                      <td><?= htmlspecialchars($lastCheck['last_check'])?></td>
+                    <?php endif ?>
+                  <?php endforeach ?>
+                  <td></td>
                 </tr>
               <?php endforeach ?>
             </tbody>
