@@ -33,8 +33,18 @@ $app->get('/urls', function ($request, $response) use ($connect) {
     $getAll->execute();
     $allUrls = $getAll->fetchAll(\PDO::FETCH_ASSOC);
 
+    $sqlGetLastCheck = 'SELECT
+                            url_id,
+                            MAX(created_at) AS last_check
+                        FROM url_checks
+                        GROUP BY url_id';
+    $getLastCheck = $connect->prepare($sqlGetLastCheck);
+    $getLastCheck->execute();
+    $lastChecks = $getLastCheck->fetchAll(\PDO::FETCH_ASSOC);
+
     $params = [
-        'urls' => $allUrls
+        'urls' => $allUrls,
+        'lastChecks' => $lastChecks
     ];
 
     return $this->get('renderer')->render($response, 'urls.phtml', $params);
@@ -67,12 +77,12 @@ $app->post('/urls', function ($request, $response) use ($router, $connect) {
 
     $urlData = parse_url(mb_strtolower($dataRequest['name']));
     $urlName = "{$urlData['scheme']}://{$urlData['host']}";
-    $now = Carbon::now();
+    $createdAt = Carbon::now();
 
     $sqlAddUrl = 'INSERT INTO urls (name, created_at) VALUES (:name, :created_at)';
     $addUrl = $connect->prepare($sqlAddUrl);
     $addUrl->bindValue(':name', $urlName);
-    $addUrl->bindValue(':created_at', $now);
+    $addUrl->bindValue(':created_at', $createdAt);
     $addUrl->execute();
 
     $sqlGetId = 'SELECT id FROM urls WHERE name = :name';
@@ -88,28 +98,46 @@ $app->post('/urls', function ($request, $response) use ($router, $connect) {
 
 $app->get('/urls/{id}', function ($request, $response, array $args) use ($connect) {
     $id = $args['id'];
+
     $sqlGetLine = 'SELECT * FROM urls WHERE id = :id';
     $getLine = $connect->prepare($sqlGetLine);
     $getLine->bindValue(':id', $id);
     $getLine->execute();
     $urlData = $getLine->fetch(\PDO::FETCH_ASSOC);
+
+    $sqlGetChecks = 'SELECT * FROM url_checks WHERE url_id = :url_id ORDER BY id DESC';
+    $getChecks = $connect->prepare($sqlGetChecks);
+    $getChecks->bindValue(':url_id', $id);
+    $getChecks->execute();
+    $checks = $getChecks->fetchAll(\PDO::FETCH_ASSOC);
+
     $flash = $this->get('flash')->getMessages();
     
     $params = [
         'url' => $urlData['name'],
         'id' => $urlData['id'],
-        'now' => $urlData['created_at'],
+        'createdAt' => $urlData['created_at'],
+        'checks' => $checks,
         'flash' => $flash
     ];
 
     return $this->get('renderer')->render($response, 'url.phtml', $params);
 })->setName('url');
 
+$app->post('/urls/{id}/checks', function ($request, $response, array $args) use ($router, $connect) {
+    $urlId = $args['id'];
+    $url = $router->urlFor('url', ['id' => $urlId]);
+    $checkAt = Carbon::now();
 
+    $sqlAddCheck = 'INSERT INTO url_checks (url_id, created_at) VALUES (:url_id, :created_at)';
+    $addUrl = $connect->prepare($sqlAddCheck);
+    $addUrl->bindValue(':url_id', $urlId);
+    $addUrl->bindValue(':created_at', $checkAt);
+    $addUrl->execute();
 
+    $this->get('flash')->addMessage('success', 'Страница успешно проверена');
 
-$app->post('/urls/{id}/check', function ($request, $response, array $args) {
-    return $this->get('renderer')->render($response, 'url.phtml');
+    return $response->withRedirect($url);
 });
 
 $app->run();
