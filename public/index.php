@@ -6,6 +6,8 @@ use Slim\Factory\AppFactory;
 use DI\Container;
 use App\Connection;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 
 session_start();
 
@@ -43,14 +45,16 @@ $app->get('/urls', function ($request, $response) use ($connect) {
                         urls.id,
                         url_checks.url_id,
                         urls.name,
-                        MAX(url_checks.created_at) AS last_check
+                        MAX(url_checks.created_at) AS last_check,
+                        url_checks.status_code
                     FROM urls
                     LEFT JOIN url_checks
                         ON url_checks.url_id = urls.id
                     GROUP BY
                         url_checks.url_id,
                         urls.id,
-                        urls.name
+                        urls.name,
+                        url_checks.status_code
                     ORDER BY urls.id DESC';
     $getUrls = $connect->prepare($sqlGetUrls);
     $getUrls->execute();
@@ -125,13 +129,23 @@ $app->get('/urls/{id}', function ($request, $response, array $args) use ($connec
     $checks = $getChecks->fetchAll(\PDO::FETCH_ASSOC);
 
     $flash = $this->get('flash')->getMessages();
+    $status = null;
+
+    if (key($flash) === 'success') {
+        $status = 'success';
+    }
+
+    if (key($flash) === 'danger') {
+        $status = 'danger';
+    }
     
     $params = [
         'url' => $urlData['name'],
         'id' => $urlData['id'],
         'createdAt' => $urlData['created_at'],
         'checks' => $checks,
-        'flash' => $flash
+        'flash' => $flash,
+        'status' => $status
     ];
 
     return $this->get('renderer')->render($response, 'url.phtml', $params);
@@ -142,13 +156,34 @@ $app->post('/urls/{id}/checks', function ($request, $response, array $args) use 
     $url = $router->urlFor('url', ['id' => $urlId]);
     $checkAt = Carbon::now();
 
-    $sqlAddCheck = 'INSERT INTO url_checks (url_id, created_at) VALUES (:url_id, :created_at)';
+    $sqlGetCurrentUrl = 'SELECT name FROM urls WHERE id = :id';
+    $getCurrentUrl = $connect->prepare($sqlGetCurrentUrl);
+    $getCurrentUrl->bindValue(':id', $urlId);
+    $getCurrentUrl->execute();
+    $currentUrl = $getCurrentUrl->fetch(\PDO::FETCH_COLUMN);
+
+    $client = new Client();
+
+    try {
+        $res = $client->request('GET', $currentUrl);
+        $flash = 'Страница успешно проверена';
+        $this->get('flash')->addMessage('success', $flash);
+    } catch (ConnectException $e) {
+        $flash = 'Произошла ошибка при проверке, не удалось подключиться';
+        $this->get('flash')->addMessage('danger', $flash);
+        return $response->withRedirect($url);
+    }
+
+    $statusCode = $res->getStatusCode();
+
+    $sqlAddCheck = 'INSERT INTO url_checks
+                        (url_id, created_at, status_code) VALUES
+                        (:url_id, :created_at, :status_code)';
     $addUrl = $connect->prepare($sqlAddCheck);
     $addUrl->bindValue(':url_id', $urlId);
     $addUrl->bindValue(':created_at', $checkAt);
+    $addUrl->bindValue(':status_code', $statusCode);
     $addUrl->execute();
-
-    $this->get('flash')->addMessage('success', 'Страница успешно проверена');
 
     return $response->withRedirect($url);
 });

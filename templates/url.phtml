@@ -31,7 +31,7 @@
     <?php if (count($flash) > 0): ?>
       <?php foreach ($flash as $messages): ?>
         <?php foreach ($messages as $message): ?>
-          <div class="alert alert-success" role="alert"><?= $message ?></div>
+          <div class="alert alert-<?= $status ?>" role="alert"><?= $message ?></div>
         <?php endforeach ?>
       <?php endforeach ?>
     <?php endif ?>
@@ -77,7 +77,7 @@
             <?php foreach ($checks as $check): ?>
               <tr>
                 <td><?= htmlspecialchars($check['id']) ?></td>
-                <td></td>
+                <td><?= htmlspecialchars($check['status_code']) ?></td>
                 <td></td>
                 <td></td>
                 <td></td>
