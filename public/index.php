@@ -28,23 +28,36 @@ $app->get('/', function ($request, $response) {
 })->setName('home');
 
 $app->get('/urls', function ($request, $response) use ($connect) {
-    $sqlGetAll = 'SELECT * FROM urls ORDER BY created_at DESC';
-    $getAll = $connect->prepare($sqlGetAll);
-    $getAll->execute();
-    $allUrls = $getAll->fetchAll(\PDO::FETCH_ASSOC);
+    // $sqlGetAll = 'SELECT * FROM urls ORDER BY created_at DESC';
+    // $getAll = $connect->prepare($sqlGetAll);
+    // $getAll->execute();
+    // $allUrls = $getAll->fetchAll(\PDO::FETCH_ASSOC);
 
-    $sqlGetLastCheck = 'SELECT
-                            url_id,
-                            MAX(created_at) AS last_check
-                        FROM url_checks
-                        GROUP BY url_id';
-    $getLastCheck = $connect->prepare($sqlGetLastCheck);
-    $getLastCheck->execute();
-    $lastChecks = $getLastCheck->fetchAll(\PDO::FETCH_ASSOC);
+    // $sqlGetLastCheck = 'SELECT
+    //                         url_id,
+    //                         MAX(created_at) AS last_check
+    //                     FROM url_checks
+    //                     GROUP BY url_id';
+
+    $sqlGetUrls =   'SELECT
+                        urls.id,
+                        url_checks.url_id,
+                        urls.name,
+                        MAX(url_checks.created_at) AS last_check
+                    FROM urls
+                    LEFT JOIN url_checks
+                        ON url_checks.url_id = urls.id
+                    GROUP BY
+                        url_checks.url_id,
+                        urls.id,
+                        urls.name
+                    ORDER BY urls.id DESC';
+    $getUrls = $connect->prepare($sqlGetUrls);
+    $getUrls->execute();
+    $urls = $getUrls->fetchAll(\PDO::FETCH_ASSOC);
 
     $params = [
-        'urls' => $allUrls,
-        'lastChecks' => $lastChecks
+        'urls' => $urls
     ];
 
     return $this->get('renderer')->render($response, 'urls.phtml', $params);
