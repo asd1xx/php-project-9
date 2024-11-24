@@ -87,7 +87,9 @@ $app->post('/urls', function ($request, $response) use ($router, $connect) {
     $urlName = "{$urlData['scheme']}://{$urlData['host']}";
     $createdAt = Carbon::now();
 
-    $sqlAddUrl = 'INSERT INTO urls (name, created_at) VALUES (:name, :created_at)';
+    $sqlAddUrl = 'INSERT INTO urls
+                    (name, created_at) VALUES
+                    (:name, :created_at)';
     $addUrl = $connect->prepare($sqlAddUrl);
     $addUrl->bindValue(':name', $urlName);
     $addUrl->bindValue(':created_at', $createdAt);
