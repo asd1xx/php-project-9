@@ -9,7 +9,6 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use DiDom\Document;
-// use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 session_start();
