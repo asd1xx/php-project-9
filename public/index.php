@@ -8,6 +8,9 @@ use App\Connection;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
+use DiDom\Document;
+// use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 
 session_start();
 
@@ -30,17 +33,6 @@ $app->get('/', function ($request, $response) {
 })->setName('home');
 
 $app->get('/urls', function ($request, $response) use ($connect) {
-    // $sqlGetAll = 'SELECT * FROM urls ORDER BY created_at DESC';
-    // $getAll = $connect->prepare($sqlGetAll);
-    // $getAll->execute();
-    // $allUrls = $getAll->fetchAll(\PDO::FETCH_ASSOC);
-
-    // $sqlGetLastCheck = 'SELECT
-    //                         url_id,
-    //                         MAX(created_at) AS last_check
-    //                     FROM url_checks
-    //                     GROUP BY url_id';
-
     $sqlGetUrls =   'SELECT
                         urls.id,
                         url_checks.url_id,
@@ -175,14 +167,21 @@ $app->post('/urls/{id}/checks', function ($request, $response, array $args) use 
     }
 
     $statusCode = $res->getStatusCode();
+    $document = new Document($currentUrl, true);
+    $h1 = optional($document->first('h1'))->text();
+    $title = optional($document->first('title'))->text();
+    $description = optional($document->first('meta[name="description"]'))->getAttribute('content');
 
     $sqlAddCheck = 'INSERT INTO url_checks
-                        (url_id, created_at, status_code) VALUES
-                        (:url_id, :created_at, :status_code)';
+                        (url_id, created_at, status_code, h1, title, description) VALUES
+                        (:url_id, :created_at, :status_code, :h1, :title, :description)';
     $addUrl = $connect->prepare($sqlAddCheck);
     $addUrl->bindValue(':url_id', $urlId);
     $addUrl->bindValue(':created_at', $checkAt);
     $addUrl->bindValue(':status_code', $statusCode);
+    $addUrl->bindValue(':h1', $h1);
+    $addUrl->bindValue(':title', $title);
+    $addUrl->bindValue(':description', $description);
     $addUrl->execute();
 
     return $response->withRedirect($url);
