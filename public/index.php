@@ -71,7 +71,7 @@ $app->post('/urls', function ($request, $response) use ($router, $connect) {
 
     $errors->rule('lengthMax', 'name', 255);
     if(!$errors->validate()) {
-        $message = 'URL не должен превышать 255 символов';
+        $message = 'Некорректный URL';
         $params = ['errors' => $errors, 'message' => $message];
         return $this->get('renderer')->render($response->withStatus(422), 'home.phtml', $params);
     }
@@ -87,21 +87,30 @@ $app->post('/urls', function ($request, $response) use ($router, $connect) {
     $urlName = "{$urlData['scheme']}://{$urlData['host']}";
     $createdAt = Carbon::now();
 
-    $sqlAddUrl = 'INSERT INTO urls
+    $sqlGetUrls = 'SELECT name FROM urls';
+    $getUrls = $connect->prepare($sqlGetUrls);
+    $getUrls->execute();
+    $urls = $getUrls->fetchAll(\PDO::FETCH_COLUMN);
+
+    if (in_array($urlName, $urls)) {
+        $this->get('flash')->addMessage('success', 'Страница уже существует');
+    } else {
+        $sqlAddUrl = 'INSERT INTO urls
                     (name, created_at) VALUES
                     (:name, :created_at)';
-    $addUrl = $connect->prepare($sqlAddUrl);
-    $addUrl->bindValue(':name', $urlName);
-    $addUrl->bindValue(':created_at', $createdAt);
-    $addUrl->execute();
+        $addUrl = $connect->prepare($sqlAddUrl);
+        $addUrl->bindValue(':name', $urlName);
+        $addUrl->bindValue(':created_at', $createdAt);
+        $addUrl->execute();
+        $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
+    }
 
     $sqlGetId = 'SELECT id FROM urls WHERE name = :name';
-    $getId = $connect->prepare($sqlGetId);
-    $getId->bindValue(':name', $urlName);
-    $getId->execute();
-    $id = $getId->fetchColumn();
-    $url = $router->urlFor('url', ['id' => $id]);
-    $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
+        $getId = $connect->prepare($sqlGetId);
+        $getId->bindValue(':name', $urlName);
+        $getId->execute();
+        $id = $getId->fetchColumn();
+        $url = $router->urlFor('url', ['id' => $id]);
 
     return $response->withRedirect($url);
 });
@@ -131,7 +140,7 @@ $app->get('/urls/{id}', function ($request, $response, array $args) use ($connec
     if (key($flash) === 'danger') {
         $status = 'danger';
     }
-    
+
     $params = [
         'url' => $urlData['name'],
         'id' => $urlData['id'],
