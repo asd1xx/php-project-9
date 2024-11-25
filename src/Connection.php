@@ -17,8 +17,8 @@ final class Connection
      */
     public function connect()
     {
-        // чтение параметров в файле конфигурации ini
-        $params = parse_ini_file('database.ini');
+        // чтение параметров в переменной окружения
+        $params = parse_url(getenv('DATABASE_URL'));
         if ($params === false) {
             throw new \Exception("Error reading database configuration file");
         }
@@ -28,9 +28,9 @@ final class Connection
             "pgsql:host=%s;port=%d;dbname=%s;user=%s;password=%s",
             $params['host'],
             $params['port'],
-            $params['database'],
+            ltrim($params['path'], '/'),
             $params['user'],
-            $params['password']
+            $params['pass']
         );
 
         $pdo = new \PDO($conStr);
@@ -54,6 +54,5 @@ final class Connection
 
     protected function __construct()
     {
-
     }
 }
