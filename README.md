@@ -51,10 +51,12 @@ Perform the following steps in sequence:
     http://localhost:8000
     ```
 
-## Information about routes and requests
+## Information about routes and methods
 
-- GET   /                   - main page
-- GET   /urls               - getting a list of all verified sites
-- GET   /urls/{id}          - viewing information about the site
-- POST  /urls               - create a verification of the entered site
-- POST  /urls/{id}/checks   - run a site check
+| Method  | Route              | Info                                       |
+|---------|--------------------|--------------------------------------------|
+| GET     | /                  | main page                                  |
+| GET     | /urls              | getting a list of all verified sites       |
+| GET     | /urls/{id}         | viewing information about the site         |
+| POST    | /urls              | create a verification of the entered site  |
+| POST    | /urls/{id}/checks  | run a site check                           |
