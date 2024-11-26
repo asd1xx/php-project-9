@@ -7,7 +7,7 @@
 
 ## About the project
 
-This is a site that analyzes the specified pages for SEO suitability, similar to PageSpeed Insights.  
+This is a site that analyzes the specified pages for SEO suitability, similar to [PageSpeed Insights](https://pagespeed.web.dev/).  
 The page Analyzer is a full-fledged application based on the Slim framework. Here, the basic principles of building modern websites on the MVC architecture are worked out: working with routing, query handlers and a template engine, interacting with a database.
 
 ## System requirements
