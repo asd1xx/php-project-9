@@ -17,20 +17,20 @@ final class Connection
      */
     public function connect()
     {
-        // чтение параметров в переменной окружения
-        $params = parse_url(getenv('DATABASE_URL'));
+        $url = getenv('DATABASE_URL');
+        $params = parse_url((string) $url);
+
         if ($params === false) {
             throw new \Exception("Error reading database configuration file");
         }
 
-        // подключение к базе данных postgresql
         $conStr = sprintf(
             "pgsql:host=%s;port=%d;dbname=%s;user=%s;password=%s",
-            $params['host'],
-            $params['port'],
-            ltrim($params['path'], '/'),
-            $params['user'],
-            $params['pass']
+            $params['host'] ?? '',
+            $params['port'] ?? '',
+            ltrim($params['path'] ?? '', '/'),
+            $params['user'] ?? '',
+            $params['pass'] ?? ''
         );
 
         $pdo = new \PDO($conStr);

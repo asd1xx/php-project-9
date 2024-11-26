@@ -39,11 +39,11 @@
               <div class="col-8">
                 <label for="text" class="visually-hidden">Url для проверки</label>
                 <input type="text" name="url[name]" value="" class="
-                  <?php if (isset($errors)) : ?>
+                  <?php if (isset($message)) : ?>
                     is-invalid
                   <?php endif ?>
                   form-control form-control-lg" placeholder="https://www.example.com">
-                <?php if (isset($errors)): ?>
+                <?php if (isset($message)): ?>
                   <div class="invalid-feedback"><?= $message ?></div>
                 <?php endif ?>
               </div>

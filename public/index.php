@@ -6,10 +6,10 @@ use Slim\Factory\AppFactory;
 use DI\Container;
 use App\Connection;
 use Carbon\Carbon;
+use Valitron\Validator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use DiDom\Document;
-use Illuminate\Support\Collection;
 
 session_start();
 
@@ -61,25 +61,28 @@ $app->get('/urls', function ($request, $response) use ($connect) {
 $app->post('/urls', function ($request, $response) use ($router, $connect) {
     $dataRequest = $request->getParsedBodyParam('url');
 
-    $errors = new Valitron\Validator($dataRequest);
-    $errors->rule('required', 'name');
-    if(!$errors->validate()) {
+    $urlErrors = new Validator($dataRequest);
+    $urlErrors->rule('required', 'name');
+    $valid = $urlErrors->validate();
+    if ($valid === false) {
         $message = 'URL не должен быть пустым';
-        $params = ['errors' => $errors, 'message' => $message];
+        $params = ['message' => $message];
         return $this->get('renderer')->render($response->withStatus(422), 'home.phtml', $params);
     }
 
-    $errors->rule('lengthMax', 'name', 255);
-    if(!$errors->validate()) {
+    $urlErrors->rule('lengthMax', 'name', 255);
+    $valid = $urlErrors->validate();
+    if ($valid === false) {
         $message = 'Некорректный URL';
-        $params = ['errors' => $errors, 'message' => $message];
+        $params = ['message' => $message];
         return $this->get('renderer')->render($response->withStatus(422), 'home.phtml', $params);
     }
 
-    $errors->rule('url', 'name');
-    if(!$errors->validate()) {
+    $urlErrors->rule('url', 'name');
+    $valid = $urlErrors->validate();
+    if ($valid === false) {
         $message = 'Некорректный URL';
-        $params = ['errors' => $errors, 'message' => $message];
+        $params = ['message' => $message];
         return $this->get('renderer')->render($response->withStatus(422), 'home.phtml', $params);
     }
 
@@ -180,7 +183,7 @@ $app->post('/urls/{id}/checks', function ($request, $response, array $args) use 
     $document = new Document($currentUrl, true);
     $h1 = optional($document->first('h1'))->text();
     $title = optional($document->first('title'))->text();
-    $description = optional($document->first('meta[name="description"]'))->getAttribute('content');
+    $description = $document->first('meta[name="description"]::attr(content)');
 
     $sqlAddCheck = 'INSERT INTO url_checks
                         (url_id, created_at, status_code, h1, title, description) VALUES
