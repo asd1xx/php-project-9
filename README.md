@@ -3,7 +3,7 @@
 [![asd1xx-check](https://github.com/asd1xx/php-project-9/actions/workflows/asd1xx-check.yml/badge.svg)](https://github.com/asd1xx/php-project-9/actions/workflows/asd1xx-check.yml)
 [![Maintainability](https://api.codeclimate.com/v1/badges/480af8b4125aa32cb8b1/maintainability)](https://codeclimate.com/github/asd1xx/php-project-9/maintainability)
 
-# Page analyzer
+# Page Analyzer
 
 ## About the project
 
@@ -36,7 +36,7 @@ Perform the following steps in sequence:
 3. Installing dependencies:
     
     ```bash
-    composer install
+    make install
     ```
     
 4. Start a project:
@@ -60,3 +60,7 @@ Perform the following steps in sequence:
 | GET     | /urls/{id}         | viewing information about the site         |
 | POST    | /urls              | create a verification of the entered site  |
 | POST    | /urls/{id}/checks  | run a site check                           |
+
+### Demo:
+
+Project [Page Analyzer](https://php-project-9-w4cu.onrender.com) will be deployed at site Render.
