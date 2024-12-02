@@ -17,8 +17,13 @@ final class Connection
      */
     public function connect()
     {
-        $url = getenv('DATABASE_URL');
-        $params = parse_url((string) $url);
+        if (!isset($_ENV['DATABASE_URL'])) {
+            $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+            $dotenv->load();
+        }
+
+        $url = $_ENV['DATABASE_URL'];
+        $params = parse_url($url);
 
         if ($params === false) {
             throw new \Exception("Error reading database configuration file");
