@@ -39,13 +39,20 @@ Perform the following steps in sequence:
     make install
     ```
     
-4. Start a project:
+4. Export the environment variable with your data:
+    
+    ```bash
+    export DATABASE_URL="postgresql://name:password@localhost:5432/database"
+    ```
+    or change file name .env.example to .env and set the values ​​of the DATABASE_URL variable
+
+5. Start a project:
     
     ```bash
     make start
     ```
 
-5. Open in browser:
+6. Open in browser:
     
     ```bash
     http://localhost:8000
