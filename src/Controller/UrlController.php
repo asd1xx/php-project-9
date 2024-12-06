@@ -11,11 +11,8 @@ use DI\Container;
 
 class UrlController
 {
-    private mixed $container;
-
-    public function __construct(Container $container)
+    public function __construct(private Container $container)
     {
-        $this->container = $container;
     }
 
     public function showUrls(Request $request, Response $response)

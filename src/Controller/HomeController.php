@@ -8,11 +8,8 @@ use DI\Container;
 
 class HomeController
 {
-    private mixed $container;
-
-    public function __construct(Container $container)
+    public function __construct(private Container $container)
     {
-        $this->container = $container;
     }
 
     public function home(Request $request, Response $response)

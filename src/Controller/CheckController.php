@@ -14,11 +14,8 @@ use DI\Container;
 
 class CheckController
 {
-    private mixed $container;
-
-    public function __construct(Container $container)
+    public function __construct(private Container $container)
     {
-        $this->container = $container;
     }
 
     public function check(Request $request, Response $response, array $args)
