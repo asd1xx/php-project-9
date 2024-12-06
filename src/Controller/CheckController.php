@@ -10,13 +10,13 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use DiDom\Document;
-use Psr\Container\ContainerInterface;
+use DI\Container;
 
 class CheckController
 {
-    private mixed $container;
+    private object $container;
 
-    public function __construct(ContainerInterface $container)
+    public function __construct(Container $container)
     {
         $this->container = $container;
     }

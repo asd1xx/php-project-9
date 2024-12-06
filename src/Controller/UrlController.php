@@ -7,13 +7,13 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Valitron\Validator;
 use Carbon\Carbon;
 use Slim\Routing\RouteContext;
-use Psr\Container\ContainerInterface;
+use DI\Container;
 
 class UrlController
 {
-    private mixed $container;
+    private object $container;
 
-    public function __construct(ContainerInterface $container)
+    public function __construct(Container $container)
     {
         $this->container = $container;
     }
@@ -51,7 +51,10 @@ class UrlController
     public function store(Request $request, Response $response)
     {
         $parsedBody = $request->getParsedBody();
-        $dataRequest = $parsedBody['url']; /** @phpstan-ignore-line */
+
+        if (is_array($parsedBody)) {
+            $dataRequest = $parsedBody['url'];
+        }
 
         $urlErrors = new Validator($dataRequest);
         $urlErrors->rule('required', 'name');
