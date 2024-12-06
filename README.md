@@ -46,13 +46,19 @@ Perform the following steps in sequence:
     ```
     or change file name .env.example to .env and set the values ​​of the DATABASE_URL variable
 
-5. Start a project:
+5. Execute all instructions from the file:
+    
+    ```bash
+    psql -a -d $DATABASE_URL -f database.sql
+    ```
+
+6. Start a project:
     
     ```bash
     make start
     ```
 
-6. Open in browser:
+7. Open in browser:
     
     ```bash
     http://localhost:8000
@@ -70,4 +76,4 @@ Perform the following steps in sequence:
 
 ### Demo:
 
-Project [Page Analyzer](https://php-project-9-d4ax.onrender.com) will be deployed at site Render.
+Project [Page Analyzer](https://php-project-9-d4ax.onrender.com) is deployed on the Render website.
