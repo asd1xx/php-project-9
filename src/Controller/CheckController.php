@@ -14,7 +14,7 @@ use DI\Container;
 
 class CheckController
 {
-    private object $container;
+    private mixed $container;
 
     public function __construct(Container $container)
     {

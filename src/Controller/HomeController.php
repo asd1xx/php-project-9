@@ -8,7 +8,7 @@ use DI\Container;
 
 class HomeController
 {
-    private object $container;
+    private mixed $container;
 
     public function __construct(Container $container)
     {

@@ -11,7 +11,7 @@ use DI\Container;
 
 class UrlController
 {
-    private object $container;
+    private mixed $container;
 
     public function __construct(Container $container)
     {
