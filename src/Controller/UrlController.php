@@ -51,6 +51,7 @@ class UrlController
     public function store(Request $request, Response $response)
     {
         $parsedBody = $request->getParsedBody();
+        $dataRequest = [];
 
         if (is_array($parsedBody)) {
             $dataRequest = $parsedBody['url'];
