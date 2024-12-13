@@ -32,12 +32,6 @@ class CheckController
         $getCurrentUrl->execute();
         $currentUrl = $getCurrentUrl->fetch(\PDO::FETCH_COLUMN);
 
-        if ($currentUrl === false) {
-            return $this->container->get('view')
-                ->render($response, '404.phtml')
-                ->withStatus(404);
-        }
-
         $client = new Client();
 
         try {

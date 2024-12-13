@@ -8,23 +8,44 @@ use App\Connection;
 use App\Controller\HomeController;
 use App\Controller\UrlController;
 use App\Controller\CheckController;
+use Psr\Http\Message\ServerRequestInterface as Request;
 
 session_start();
 
 $container = new Container();
+$container->set('connect', function () {
+    return Connection::get()->connect();
+});
 $container->set('view', function () {
     return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
 });
 $container->set('flash', function () {
     return new \Slim\Flash\Messages();
 });
-$container->set('connect', function () {
-    return Connection::get()->connect();
-});
 
 $app = AppFactory::createFromContainer($container);
 $app->addRoutingMiddleware();
-$app->addErrorMiddleware(true, true, true);
+
+$customErrorHandler = function (Request $request, Throwable $exception) use ($app, $container) {
+    $response = $app->getResponseFactory()->createResponse();
+
+    if ($exception->getCode() == 404) {
+        return $container->get('view')
+            ->render($response, '404.phtml')
+            ->withStatus(404);
+    }
+
+    if ($exception->getCode() == 500) {
+        return $container->get('view')
+            ->render($response, '500.phtml')
+            ->withStatus(500);
+    }
+
+    return $response;
+};
+
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+$errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 
 $app->get('/', [HomeController::class, 'home'])
     ->setName('home');
@@ -35,7 +56,7 @@ $app->get('/urls', [UrlController::class, 'showUrls'])
 $app->post('/urls', [UrlController::class, 'store'])
     ->setName('store');
 
-$app->get('/urls/{id}', [UrlController::class, 'showUrl'])
+$app->get('/urls/{id:[0-9]+}', [UrlController::class, 'showUrl'])
     ->setName('url');
 
 $app->post('/urls/{id:[0-9]+}/checks', [CheckController::class, 'check'])

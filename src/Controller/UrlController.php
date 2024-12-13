@@ -124,23 +124,11 @@ class UrlController
     {
         $id = $args['id'];
 
-        if (ctype_digit($id) === false) {
-            return $this->container->get('view')
-                ->render($response, '404.phtml')
-                ->withStatus(404);
-        }
-
         $sqlGetLine = 'SELECT * FROM urls WHERE id = :id';
         $getLine = $this->container->get('connect')->prepare($sqlGetLine);
         $getLine->bindValue(':id', $id);
         $getLine->execute();
         $urlData = $getLine->fetch();
-
-        if ($urlData === false) {
-            return $this->container->get('view')
-                ->render($response, '404.phtml')
-                ->withStatus(404);
-        }
 
         $sqlGetChecks = 'SELECT * FROM url_checks WHERE url_id = :url_id ORDER BY id DESC';
         $getChecks = $this->container->get('connect')->prepare($sqlGetChecks);
