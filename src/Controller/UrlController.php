@@ -88,24 +88,7 @@ class UrlController
         $urlData = parse_url(mb_strtolower($dataRequest['name']));
         $urlName = "{$urlData['scheme']}://{$urlData['host']}";
         $createdAt = Carbon::now();
-
-        $sqlGetUrlsName = 'SELECT name FROM urls';
-        $getUrlsName = $this->container->get('connect')->prepare($sqlGetUrlsName);
-        $getUrlsName->execute();
-        $urls = $getUrlsName->fetchAll(\PDO::FETCH_COLUMN);
-
-        if (in_array($urlName, $urls)) {
-            $this->container->get('flash')->addMessage('success', 'Страница уже существует');
-        } else {
-            $sqlAddUrl = 'INSERT INTO urls
-                        (name, created_at) VALUES
-                        (:name, :created_at)';
-            $addUrl = $this->container->get('connect')->prepare($sqlAddUrl);
-            $addUrl->bindValue(':name', $urlName);
-            $addUrl->bindValue(':created_at', $createdAt);
-            $addUrl->execute();
-            $this->container->get('flash')->addMessage('success', 'Страница успешно добавлена');
-        }
+        $routeParser = RouteContext::fromRequest($request)->getRouteParser();
 
         $sqlGetId = 'SELECT id FROM urls WHERE name = :name';
             $getId = $this->container->get('connect')->prepare($sqlGetId);
@@ -113,11 +96,26 @@ class UrlController
             $getId->execute();
             $id = $getId->fetchColumn();
 
-            $routeParser = RouteContext::fromRequest($request)->getRouteParser();
+        if ($id) {
+            $this->container->get('flash')->addMessage('success', 'Страница уже существует');
             $url = $routeParser->urlFor('url', ['id' => $id]);
-
             return $response->withHeader('Location', $url)
                 ->withStatus(302);
+        } else {
+            $sqlAddUrl = 'INSERT INTO urls
+                        (name, created_at) VALUES
+                        (:name, :created_at) RETURNING id';
+            $addUrl = $this->container->get('connect')->prepare($sqlAddUrl);
+            $addUrl->bindValue(':name', $urlName);
+            $addUrl->bindValue(':created_at', $createdAt);
+            $addUrl->execute();
+            $lastId = $addUrl->fetchColumn();
+            $this->container->get('flash')->addMessage('success', 'Страница успешно добавлена');
+            $url = $routeParser->urlFor('url', ['id' => $lastId]);
+        }
+
+        return $response->withHeader('Location', $url)
+            ->withStatus(302);
     }
 
     public function showUrl(Request $request, Response $response, array $args)
@@ -137,19 +135,7 @@ class UrlController
         $checks = $getChecks->fetchAll();
 
         $flash = $this->container->get('flash')->getMessages();
-        $status = null;
-
-        if (key($flash) === 'success') {
-            $status = 'success';
-        }
-
-        if (key($flash) === 'danger') {
-            $status = 'danger';
-        }
-
-        if (key($flash) === 'warning') {
-            $status = 'warning';
-        }
+        $status = key($flash) ?? null;
 
         $params = [
             'url' => $urlData['name'],

@@ -35,12 +35,6 @@ $customErrorHandler = function (Request $request, Throwable $exception) use ($ap
             ->withStatus(404);
     }
 
-    if ($exception->getCode() == 500) {
-        return $container->get('view')
-            ->render($response, '500.phtml')
-            ->withStatus(500);
-    }
-
     return $response;
 };
 
